@@ -7,6 +7,7 @@ interface envConfig {
   STRIPE_WEBHOOK_SECRET: string;
   SUCCESS_PAYMENT_URL: string;
   CANCELLED_PAYMENT_URL: string;
+  NATS_SERVER: string[];
 }
 
 const envsSchema: joi.ObjectSchema = joi
@@ -16,10 +17,15 @@ const envsSchema: joi.ObjectSchema = joi
     STRIPE_WEBHOOK_SECRET: joi.string().required(),
     SUCCESS_PAYMENT_URL: joi.string().required(),
     CANCELLED_PAYMENT_URL: joi.string().required(),
+    NATS_SERVER: joi.array().items(joi.string()).required(),
   })
   .unknown(true);
 
-const { error, value } = envsSchema.validate(process.env);
+const { error, value } = envsSchema.validate({
+  ...process.env,
+  NATS_SERVER: process.env.NATS_SERVER?.split(','),
+});
+
 if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
@@ -32,4 +38,5 @@ export const envs = {
   stripeWebhookSecret: envConfig.STRIPE_WEBHOOK_SECRET,
   successPaymentUrl: envConfig.SUCCESS_PAYMENT_URL,
   cancelledPaymentUrl: envConfig.CANCELLED_PAYMENT_URL,
+  natsServer: envConfig.NATS_SERVER,
 };
